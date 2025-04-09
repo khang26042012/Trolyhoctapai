@@ -1,13 +1,14 @@
 import React from "react";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Button } from "@/components/ui/button";
-import { Info, Trash2, Moon, Sun } from "lucide-react";
+import { Info, Trash2, Moon, Sun, BookOpen } from "lucide-react";
 
 interface ChatHeaderProps {
   onAboutOpen: () => void;
+  onPracticeOpen: () => void;
 }
 
-export function ChatHeader({ onAboutOpen }: ChatHeaderProps) {
+export function ChatHeader({ onAboutOpen, onPracticeOpen }: ChatHeaderProps) {
   const { clearMessages, toggleDarkMode, state } = useChatContext();
   const { isDarkMode } = state;
 
@@ -20,6 +21,16 @@ export function ChatHeader({ onAboutOpen }: ChatHeaderProps) {
         <h1 className="text-lg font-bold">Trợ Lý Học Tập AI</h1>
       </div>
       <div className="flex items-center space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onPracticeOpen}
+          title="Tạo đề luyện tập"
+          aria-label="Tạo đề luyện tập tự động"
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          <BookOpen className="h-5 w-5" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"

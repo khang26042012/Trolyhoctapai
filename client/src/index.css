@@ -115,6 +115,23 @@
   margin-bottom: 0;
 }
 
+/* Hiệu ứng typing indicator */
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+.typing-indicator {
+  color: #4b5563;
+  animation: pulse 1.5s infinite;
+  font-size: 0.8rem;
+}
+
+.dark .typing-indicator {
+  color: #9ca3af;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

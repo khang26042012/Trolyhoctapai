@@ -44,10 +44,20 @@ export function ChatContainer() {
           </div>
           <div className="flex flex-col max-w-[85%] sm:max-w-[70%]">
             <div className="bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-white p-3 rounded-lg rounded-tl-none">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-75"></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-150"></div>
+              <div className="flex flex-col">
+                {state.selectedAction && (
+                  <div className="text-xs text-blue-600 dark:text-blue-400 mb-1.5 font-medium">
+                    AI đang trả lời theo chế độ: {state.selectedAction === "complete" ? "Giải đầy đủ" : 
+                      state.selectedAction === "concise" ? "Giải rút gọn" : 
+                      state.selectedAction === "hint" ? "Gợi ý" : ""}
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <div className="typing-indicator mr-1">đang viết</div>
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-75 mx-0.5"></div>
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-150"></div>
+                </div>
               </div>
             </div>
           </div>

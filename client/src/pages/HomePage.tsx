@@ -6,6 +6,7 @@ import { ActionButtons } from "@/components/layout/ActionButtons";
 import { ChatInput } from "@/components/layout/ChatInput";
 import { AboutModal } from "@/components/modals/AboutModal";
 import { ImagePreviewModal } from "@/components/modals/ImagePreviewModal";
+import { PracticeQuestionsModal } from "@/components/modals/PracticeQuestionsModal";
 import { useToast } from "@/hooks/use-toast";
 
 export default function HomePage() {
@@ -15,6 +16,7 @@ export default function HomePage() {
   // Modal states
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+  const [isPracticeOpen, setIsPracticeOpen] = useState(false);
   
   // Image processing states
   const [imageUrl, setImageUrl] = useState("");
@@ -92,7 +94,10 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
-      <ChatHeader onAboutOpen={() => setIsAboutOpen(true)} />
+      <ChatHeader 
+        onAboutOpen={() => setIsAboutOpen(true)} 
+        onPracticeOpen={() => setIsPracticeOpen(true)}
+      />
       <ChatContainer />
       <ActionButtons />
       <ChatInput onImageUpload={handleImageUpload} />
@@ -108,6 +113,10 @@ export default function HomePage() {
         imageUrl={imageUrl}
         isProcessing={isProcessingImage}
         onSendImage={handleSendImage}
+      />
+      <PracticeQuestionsModal
+        isOpen={isPracticeOpen}
+        onOpenChange={setIsPracticeOpen}
       />
     </div>
   );
