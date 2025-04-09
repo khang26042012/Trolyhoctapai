@@ -94,63 +94,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Subject and grade are required" });
       }
       
-      // Tạo prompt để yêu cầu Gemini tạo câu hỏi
-      const practicePrompt = `Hãy tạo ${count} câu hỏi trắc nghiệm hoặc tự luận về môn ${subject} lớp ${grade}${topic ? ` với chủ đề ${topic}` : ''}.
-      
-Mỗi câu hỏi cần bao gồm:
-- Nội dung câu hỏi rõ ràng, ngắn gọn
-${includeAnswers ? '- Kèm theo đáp án đúng\n- Giải thích ngắn gọn lý do tại sao đáp án là đúng' : ''}
+      // Cải thiện prompt để yêu cầu Gemini tạo câu hỏi có cấu trúc JSON rõ ràng
+      const practicePrompt = `Hãy tạo ${count} câu hỏi trắc nghiệm hoặc tự luận chất lượng cao về môn ${subject} lớp ${grade}${topic ? ` với chủ đề ${topic}` : ''}.
 
-Trả về câu hỏi dưới định dạng JSON như sau:
+Yêu cầu về câu hỏi:
+1. Nội dung phải đúng kiến thức môn ${subject} lớp ${grade}
+2. Câu hỏi phải rõ ràng, dễ hiểu và đúng ngữ pháp
+3. Đảm bảo độ khó phù hợp với học sinh lớp ${grade}
+4. Đa dạng về dạng câu hỏi (trắc nghiệm, tự luận, điền khuyết, etc.)
+5. Định dạng câu hỏi rõ ràng, có thể kèm theo công thức toán học nếu cần
+${includeAnswers ? '6. Đáp án phải đúng, và có giải thích chi tiết, rõ ràng' : ''}
+
+Trả về câu hỏi CHÍNH XÁC theo định dạng JSON sau:
 [
   {
-    "question": "Nội dung câu hỏi",
-    "answer": "Đáp án đúng (nếu là trắc nghiệm) hoặc hướng dẫn đáp án (nếu là tự luận)",
-    "explanation": "Giải thích ngắn gọn cho đáp án"
+    "question": "Nội dung câu hỏi với định dạng HTML (có thể dùng <p>, <strong>, <em>, <ul>, <li>)",
+    "answer": "${includeAnswers ? 'Đáp án đúng với định dạng HTML' : ''}",
+    "explanation": "${includeAnswers ? 'Giải thích chi tiết với định dạng HTML' : ''}"
   },
   ...
 ]
 
-Lưu ý: Tạo câu hỏi phù hợp với trình độ lớp ${grade}, đảm bảo đúng kiến thức và độ khó phù hợp.`;
+QUAN TRỌNG: Chỉ trả về đúng định dạng JSON yêu cầu, không thêm bất kỳ văn bản giới thiệu hoặc kết luận nào khác.`;
 
-      // Sử dụng system prompt để định hướng AI tạo câu hỏi chất lượng cao
-      const systemPrompt = `Bạn là một giáo viên giỏi chuyên môn ${subject}. 
-Nhiệm vụ của bạn là tạo các câu hỏi chất lượng cao để học sinh lớp ${grade} luyện tập. 
-Hãy đảm bảo rằng các câu hỏi đều đúng kiến thức, phù hợp với chương trình, 
-có tính thực tiễn cao và giúp học sinh hiểu sâu hơn về môn học.`;
+      // Cải thiện system prompt để định hướng AI tạo câu hỏi chất lượng cao và đúng định dạng
+      const systemPrompt = `Bạn là giáo viên chuyên môn hàng đầu về môn ${subject}, với nhiều năm kinh nghiệm dạy học sinh lớp ${grade}.
+Nhiệm vụ của bạn là tạo các câu hỏi chất lượng cao để học sinh luyện tập.
+Hãy đảm bảo câu hỏi đúng kiến thức chương trình, phù hợp với độ tuổi, và giúp học sinh hiểu sâu hơn về môn học.
+Câu trả lời của bạn PHẢI đúng định dạng JSON theo yêu cầu, không được thêm văn bản giới thiệu hoặc kết luận khác.`;
 
       // Generate questions using AI
       const aiResponse = await generateAIResponse(practicePrompt, systemPrompt);
       
-      // Try to parse the response as JSON
       try {
-        // Tìm dữ liệu JSON trong phản hồi của AI
-        const jsonMatch = aiResponse.match(/\[\s*\{.*\}\s*\]/s);
-        let questions: PracticeQuestion[] = [];
+        // Tìm và trích xuất phần JSON từ phản hồi AI
+        const jsonPattern = /\[\s*\{\s*"question"[\s\S]*\}\s*\]/;
+        const match = aiResponse.match(jsonPattern);
         
-        if (jsonMatch) {
-          // Nếu có định dạng JSON, cố gắng parse
-          questions = JSON.parse(jsonMatch[0]);
-        } else {
-          // Nếu không phải JSON, trả về lỗi
+        if (!match) {
+          console.error("No JSON pattern found in response");
           return res.status(500).json({ 
-            error: "Failed to generate properly formatted questions",
-            rawResponse: aiResponse
+            error: "Không thể tạo câu hỏi theo định dạng yêu cầu", 
+            rawResponse: aiResponse 
+          });
+        }
+        
+        const jsonStr = match[0];
+        const questions: PracticeQuestion[] = JSON.parse(jsonStr);
+        
+        if (!Array.isArray(questions) || questions.length === 0) {
+          console.error("Empty or invalid questions array");
+          return res.status(500).json({ 
+            error: "Kết quả trả về không hợp lệ", 
+            rawResponse: aiResponse 
           });
         }
         
         return res.status(200).json({ questions });
       } catch (parseError) {
         console.error("Error parsing AI response as questions:", parseError);
-        // Trả về response gốc nếu parse lỗi để xử lý ở phía client
+        // Log response for debugging
+        console.error("AI response:", aiResponse);
+        
+        // Thử phương pháp khác để trích xuất JSON
+        try {
+          // Tìm vị trí của dấu [ đầu tiên và dấu ] cuối cùng
+          const startIdx = aiResponse.indexOf('[');
+          const endIdx = aiResponse.lastIndexOf(']');
+          
+          if (startIdx !== -1 && endIdx !== -1 && startIdx < endIdx) {
+            const jsonStr = aiResponse.substring(startIdx, endIdx + 1);
+            const questions: PracticeQuestion[] = JSON.parse(jsonStr);
+            
+            if (Array.isArray(questions) && questions.length > 0) {
+              return res.status(200).json({ questions });
+            }
+          }
+        } catch (secondAttemptError) {
+          console.error("Second attempt also failed:", secondAttemptError);
+        }
+        
         return res.status(500).json({ 
-          error: "Failed to parse questions", 
+          error: "Không thể phân tích kết quả từ AI. Vui lòng thử lại.", 
           rawResponse: aiResponse 
         });
       }
     } catch (error) {
       console.error("Error in practice questions endpoint:", error);
-      return res.status(500).json({ error: "Failed to generate practice questions" });
+      return res.status(500).json({ error: "Không thể tạo câu hỏi luyện tập. Vui lòng thử lại sau." });
     }
   });
 

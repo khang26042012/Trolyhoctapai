@@ -111,9 +111,10 @@ export function PracticeQuestionsModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">Tạo đề luyện tập</DialogTitle>
+          <DialogTitle className="text-xl">AI tạo bài tập luyện tập</DialogTitle>
           <DialogDescription>
-            Chọn môn học và cấp độ để tạo đề luyện tập phù hợp.
+            AI sẽ tự động tạo ra các bài tập dựa trên môn học, lớp và chủ đề bạn chọn.
+            Các bài tập được thiết kế phù hợp với chương trình học và mức độ khó tương ứng.
           </DialogDescription>
         </DialogHeader>
         
@@ -231,26 +232,34 @@ export function PracticeQuestionsModal({
               {questions.map((q, index) => (
                 <AccordionItem key={index} value={index.toString()}>
                   <AccordionTrigger className="text-left hover:no-underline">
-                    <span className="font-medium">
-                      Câu {index + 1}: {q.question.length > 100 ? q.question.substring(0, 100) + "..." : q.question}
+                    <span className="font-medium flex items-center gap-2">
+                      <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full w-6 h-6 inline-flex items-center justify-center flex-shrink-0">
+                        {index + 1}
+                      </span>
+                      <span className="line-clamp-1">
+                        {/* Loại bỏ tag HTML để hiển thị tiêu đề gọn hơn */}
+                        {q.question.replace(/<[^>]*>/g, '').substring(0, 80) + (q.question.length > 80 ? '...' : '')}
+                      </span>
                     </span>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-2">
-                      <div dangerouslySetInnerHTML={{ __html: q.question }} />
+                    <div className="space-y-4 pb-2">
+                      <div className="border-l-4 border-blue-500 pl-3 py-2">
+                        <div dangerouslySetInnerHTML={{ __html: q.question }} />
+                      </div>
                       
                       {includeAnswers && q.answer && (
-                        <div className="mt-2">
-                          <div className="font-medium text-blue-600 dark:text-blue-400">
+                        <div className="mt-3 border-l-4 border-green-500 pl-3 py-2">
+                          <div className="font-medium text-blue-600 dark:text-blue-400 mb-1 text-sm uppercase tracking-wide">
                             Đáp án:
                           </div>
-                          <div dangerouslySetInnerHTML={{ __html: q.answer }} />
+                          <div dangerouslySetInnerHTML={{ __html: q.answer }} className="text-green-700 dark:text-green-300" />
                         </div>
                       )}
                       
                       {includeAnswers && q.explanation && (
-                        <div className="mt-2">
-                          <div className="font-medium text-green-600 dark:text-green-400">
+                        <div className="mt-3 border-l-4 border-amber-500 pl-3 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-r">
+                          <div className="font-medium text-amber-600 dark:text-amber-400 mb-1 text-sm uppercase tracking-wide">
                             Giải thích:
                           </div>
                           <div dangerouslySetInnerHTML={{ __html: q.explanation }} />
@@ -264,8 +273,25 @@ export function PracticeQuestionsModal({
           </div>
         )}
         
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+          {questions.length > 0 && (
+            <Button 
+              variant="default" 
+              onClick={handleGenerateQuestions} 
+              disabled={isLoading}
+              className="w-full sm:w-auto mr-auto"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang tạo...
+                </>
+              ) : (
+                "Làm thử đề khác"
+              )}
+            </Button>
+          )}
+          <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
             Đóng
           </Button>
         </DialogFooter>
