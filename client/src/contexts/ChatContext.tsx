@@ -253,13 +253,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       
       // Add each question with a collapsible answer
       data.questions.forEach((q: any, index: number) => {
+        // Kiểm tra xem có phải câu hỏi trắc nghiệm không
+        const isMultipleChoice = /[A-D]\./.test(q.question) || /[A-D]\)/.test(q.question);
+        
+        // Format câu hỏi
+        let formattedQuestion = q.question;
+        
         practiceContent += `
           <div class="practice-question mb-4">
             <div class="font-medium practice-question-title">
-              Câu ${index + 1}: ${q.question.replace(/<[^>]*>/g, '')}
+              Câu ${index + 1}: ${isMultipleChoice ? "Chọn" : q.question.replace(/<[^>]*>/g, '').substring(0, 100) + (q.question.replace(/<[^>]*>/g, '').length > 100 ? '...' : '')}
             </div>
             <div class="practice-question-content my-2">
-              ${q.question}
+              ${isMultipleChoice ? formattedQuestion : q.question}
             </div>
             <div class="practice-answer" data-practice-id="${index}">
               <button class="text-blue-600 dark:text-blue-400 text-sm font-medium cursor-pointer practice-toggle" 
@@ -277,6 +283,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                   <div>${q.explanation}</div>
                 </div>
                 ` : ''}
+                <div class="mt-2 border-l-4 border-blue-500 pl-3 py-2">
+                  <div class="font-medium text-blue-600 dark:text-blue-400 mb-1 text-sm">Câu hỏi đầy đủ:</div>
+                  <div>${q.question}</div>
+                </div>
               </div>
             </div>
           </div>`;
