@@ -25,7 +25,7 @@ const initialState: ChatState = {
   messages: [initialMessage],
   isLoading: false,
   isDarkMode: false, // Default to light mode per user request
-  selectedAction: null,
+  selectedAction: "complete", // Đặt "Giải đầy đủ" làm chế độ mặc định
 };
 
 // Create the chat context
