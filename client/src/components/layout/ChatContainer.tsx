@@ -46,8 +46,14 @@ export function ChatContainer() {
             <div className="bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-white p-3 rounded-lg rounded-tl-none">
               <div className="flex flex-col">
                 {state.selectedAction && (
-                  <div className="text-xs text-blue-600 dark:text-blue-400 mb-1.5 font-medium">
-                    AI đang trả lời theo chế độ: {state.selectedAction === "complete" ? "Giải đầy đủ" : 
+                  <div className={`text-xs mb-1.5 px-1.5 py-0.5 rounded inline-block ${
+                    state.selectedAction === "complete" 
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
+                      : state.selectedAction === "concise"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                        : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                  }`}>
+                    <span className="font-semibold">Chế độ:</span> {state.selectedAction === "complete" ? "Giải đầy đủ" : 
                       state.selectedAction === "concise" ? "Giải rút gọn" : 
                       state.selectedAction === "hint" ? "Gợi ý" : ""}
                   </div>
@@ -241,14 +247,14 @@ function MessageBubble({ message }: { message: Message }) {
           
           {/* Hiển thị nhãn chế độ nếu là tin nhắn AI và có action */}
           {!isUser && message.action && (
-            <span className={`ml-3 px-1.5 py-0.5 rounded text-xs font-medium ${
+            <span className={`ml-3 px-1.5 py-0.5 rounded text-xs ${
               message.action === "complete" 
                 ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
                 : message.action === "concise"
                   ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                   : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
             }`}>
-              {message.action === "complete" ? "Giải đầy đủ" : 
+              <span className="font-semibold">Chế độ:</span> {message.action === "complete" ? "Giải đầy đủ" : 
                message.action === "concise" ? "Giải rút gọn" : "Gợi ý"}
             </span>
           )}
