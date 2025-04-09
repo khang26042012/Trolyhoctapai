@@ -24,7 +24,7 @@ const initialMessage: Message = {
 const initialState: ChatState = {
   messages: [initialMessage],
   isLoading: false,
-  isDarkMode: window.matchMedia("(prefers-color-scheme: dark)").matches,
+  isDarkMode: false, // Default to light mode per user request
   selectedAction: null,
 };
 
