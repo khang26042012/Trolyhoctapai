@@ -5,7 +5,7 @@ import { z } from "zod";
 // Define the messages table schema
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
-  role: text("role").notNull(), // 'user' or 'assistant'
+  role: text("role").notNull(), // 'user', 'assistant', or 'system'
   content: text("content").notNull(),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   action: text("action"), // 'complete', 'concise', 'hint', or null
@@ -21,7 +21,7 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 // Define zod schema for message object
 export const messageSchema = z.object({
   id: z.number().optional(),
-  role: z.enum(["user", "assistant"]),
+  role: z.enum(["user", "assistant", "system"]),
   content: z.string(),
   timestamp: z.date().optional(),
   action: z.enum(["complete", "concise", "hint"]).optional().nullable(),

@@ -208,6 +208,106 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const setSelectedAction = (action: ActionType) => {
     dispatch({ type: "SET_SELECTED_ACTION", payload: action });
   };
+  
+  // Function to add practice questions directly to chat
+  const sendPracticeQuestions = async (subject: string, grade: string, topic?: string) => {
+    try {
+      // System message to indicate loading practice questions
+      const loadingMessage: Message = {
+        role: "system" as const,
+        content: `<p>Đang tạo bài tập luyện tập về môn ${subject} lớp ${grade}${topic ? ` chủ đề ${topic}` : ''}...</p>`,
+        timestamp: new Date(),
+      };
+      
+      dispatch({ type: "ADD_MESSAGE", payload: loadingMessage });
+      dispatch({ type: "SET_LOADING", payload: true });
+      
+      // Fetch practice questions from API
+      const response = await fetch("/api/practice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          grade,
+          topic,
+          count: 3,
+          includeAnswers: true,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch practice questions");
+      }
+      
+      const data = await response.json();
+      
+      // Remove loading message
+      dispatch({ 
+        type: "SET_MESSAGES", 
+        payload: state.messages.filter(msg => msg !== loadingMessage) 
+      });
+      
+      // Format practice questions as a chat message
+      let practiceContent = `<div class="practice-questions">
+        <h3 class="text-lg font-medium mb-2">Bài tập luyện tập môn ${subject} lớp ${grade}${topic ? ` - ${topic}` : ''}</h3>`;
+      
+      // Add each question with a collapsible answer
+      data.questions.forEach((q: any, index: number) => {
+        practiceContent += `
+          <div class="practice-question mb-4">
+            <div class="font-medium practice-question-title">
+              Câu ${index + 1}: ${q.question.replace(/<[^>]*>/g, '')}
+            </div>
+            <div class="practice-question-content my-2">
+              ${q.question}
+            </div>
+            <div class="practice-answer" data-practice-id="${index}">
+              <button class="text-blue-600 dark:text-blue-400 text-sm font-medium cursor-pointer practice-toggle" 
+                      onclick="this.parentElement.classList.toggle('show-answer');this.textContent=this.parentElement.classList.contains('show-answer')?'Ẩn lời giải':'Xem lời giải'">
+                Xem lời giải
+              </button>
+              <div class="practice-answer-content hidden">
+                <div class="mt-2 border-l-4 border-green-500 pl-3 py-2">
+                  <div class="font-medium text-blue-600 dark:text-blue-400 mb-1 text-sm">Đáp án:</div>
+                  <div class="text-green-700 dark:text-green-300">${q.answer || 'Không có đáp án'}</div>
+                </div>
+                ${q.explanation ? `
+                <div class="mt-2 border-l-4 border-amber-500 pl-3 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-r">
+                  <div class="font-medium text-amber-600 dark:text-amber-400 mb-1 text-sm">Giải thích:</div>
+                  <div>${q.explanation}</div>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>`;
+      });
+      
+      practiceContent += `</div>`;
+      
+      // Add message with practice questions to chat
+      const practiceMessage: Message = {
+        role: "assistant" as const,
+        content: practiceContent,
+        timestamp: new Date(),
+        action: state.selectedAction,
+      };
+      
+      dispatch({ type: "ADD_MESSAGE", payload: practiceMessage });
+    } catch (error) {
+      console.error("Error sending practice questions:", error);
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        role: "system" as const,
+        content: `<p class="text-red-500">Không thể tạo bài tập luyện tập. Vui lòng thử lại sau.</p>`,
+        timestamp: new Date(),
+      };
+      
+      dispatch({ type: "ADD_MESSAGE", payload: errorMessage });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
 
   const contextValue: ChatContextProps = {
     state,
@@ -217,6 +317,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     clearMessages,
     toggleDarkMode,
     setSelectedAction,
+    sendPracticeQuestions, // Add the new function
   };
 
   return <ChatContext.Provider value={contextValue}>{children}</ChatContext.Provider>;

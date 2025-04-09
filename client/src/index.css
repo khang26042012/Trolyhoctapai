@@ -5,82 +5,68 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222.2 47.4% 11.2%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
-    --primary: 214 100% 48%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 222.2 47.4% 11.2%;
-    --sidebar-primary: 214 100% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 222.2 84% 4.9%;
+    --ring: 215 20.2% 65.1%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 214 100% 48%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 216 34% 17%;
 
-    --sidebar-background: 222.2 47.4% 11.2%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 214 100% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 212.7 26.8% 83.9%;
+    --radius: 0.5rem;
   }
 }
 
@@ -88,57 +74,145 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* MathJax styling adjustments */
-.MathJax {
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-/* Tùy chỉnh kiểu cho popup giải thích thuật ngữ */
-.term-explanation-popup {
-  animation: fadeIn 0.2s ease-in-out;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-}
-
-.term-explanation-popup .prose {
-  margin: 0;
-}
-
-.term-explanation-popup p:last-child {
-  margin-bottom: 0;
-}
-
-/* Hiệu ứng typing indicator */
-@keyframes pulse {
-  0% { opacity: 0.4; }
-  50% { opacity: 1; }
-  100% { opacity: 0.4; }
-}
-
+/* Typing indicator animation */
 .typing-indicator {
-  color: #4b5563;
-  animation: pulse 1.5s infinite;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  color: #555;
 }
 
-.dark .typing-indicator {
+/* Custom term explanation styling */
+.practice-answer .practice-answer-content.hidden {
+  display: none;
+}
+
+.practice-answer.show-answer .practice-answer-content.hidden {
+  display: block;
+}
+
+.practice-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.5rem;
+  border-radius: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  background-color: #f0f9ff;
+  border: 1px solid #93c5fd;
+  transition: all 0.2s ease;
+}
+
+.dark .practice-toggle {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.practice-toggle:hover {
+  background-color: #e0f2fe;
+}
+
+.dark .practice-toggle:hover {
+  background-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Message content styling */
+.message-content p {
+  margin-bottom: 0.5rem;
+}
+
+.message-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-content li {
+  margin-bottom: 0.25rem;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  width: 100%;
+}
+
+.message-content th,
+.message-content td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.dark .message-content th,
+.dark .message-content td {
+  border-color: #374151;
+}
+
+.message-content th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+.dark .message-content th {
+  background-color: #1f2937;
+}
+
+/* Custom blockquote styling */
+.message-content blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: #6b7280;
+}
+
+.dark .message-content blockquote {
+  border-left-color: #4b5563;
   color: #9ca3af;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Prevent long messages from breaking layout */
+.message-content {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* Practice question specific styles */
+.practice-questions {
+  margin: 0.5rem 0;
+}
+
+.practice-question {
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  background-color: #f9fafb;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.dark .practice-question {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.practice-question-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1e40af;
+}
+
+.dark .practice-question-title {
+  color: #93c5fd;
 }

@@ -6,7 +6,7 @@ import { ActionButtons } from "@/components/layout/ActionButtons";
 import { ChatInput } from "@/components/layout/ChatInput";
 import { AboutModal } from "@/components/modals/AboutModal";
 import { ImagePreviewModal } from "@/components/modals/ImagePreviewModal";
-import { PracticeQuestionsModal } from "@/components/modals/PracticeQuestionsModal";
+import { QuickPracticeDialog } from "@/components/modals/QuickPracticeDialog";
 import { useToast } from "@/hooks/use-toast";
 
 export default function HomePage() {
@@ -114,7 +114,7 @@ export default function HomePage() {
         isProcessing={isProcessingImage}
         onSendImage={handleSendImage}
       />
-      <PracticeQuestionsModal
+      <QuickPracticeDialog
         isOpen={isPracticeOpen}
         onOpenChange={setIsPracticeOpen}
       />

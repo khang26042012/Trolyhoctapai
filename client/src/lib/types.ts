@@ -29,4 +29,5 @@ export interface ChatContextProps {
   clearMessages: () => void;
   toggleDarkMode: () => void;
   setSelectedAction: (action: ActionType) => void;
+  sendPracticeQuestions: (subject: string, grade: string, topic?: string) => Promise<void>;
 }
