@@ -9,7 +9,7 @@ export async function extractTextFromImage(imageData: string): Promise<string> {
   try {
     // Create a Tesseract worker
     const worker = await createWorker({
-      logger: m => console.log(m),
+      logger: process.env.NODE_ENV === 'development',
     });
 
     // Load the Vietnamese language pack (if not already downloaded)
