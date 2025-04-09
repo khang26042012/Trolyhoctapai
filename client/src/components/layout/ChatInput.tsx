@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Image, Send } from "lucide-react";
+import { Image, Send, X } from "lucide-react";
 import { autoResizeTextarea } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface ChatInputProps {
   onImageUpload: (file: File) => void;
