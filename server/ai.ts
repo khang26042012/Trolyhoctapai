@@ -15,71 +15,72 @@ const getGeminiClient = () => {
  * Generate an AI response using Google's Gemini Pro model
  * @param prompt The user's message/question
  * @param systemPrompt The system prompt that guides the AI's behavior
+ * @param imageData Optional base64 image data to include with the prompt
  * @returns The AI-generated response
  */
 export async function generateAIResponse(
   prompt: string,
-  systemPrompt?: string
+  systemPrompt?: string,
+  imageData?: string
 ): Promise<string> {
   try {
     const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({
-      model: "gemini-pro",
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 8192,
-      },
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE",
+    
+    // For image-based prompts, use the gemini-pro-vision model directly
+    if (imageData) {
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-pro-vision",
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
         },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE",
+      });
+
+      // Create image part from the base64 data
+      const imageDataClean = imageData.replace(/^data:image\/\w+;base64,/, "");
+      const imagePart = {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: imageDataClean
+        }
+      };
+
+      // Create prompt text with the system prompt if available
+      const promptText = systemPrompt 
+        ? `${systemPrompt}\n\n${prompt || "Vui lòng giải bài tập trong hình ảnh này."}`
+        : (prompt || "Vui lòng giải bài tập trong hình ảnh này.");
+
+      // Generate content with text and image
+      const result = await model.generateContent([promptText, imagePart]);
+      const response = await result.response;
+      const responseText = response.text();
+      
+      // Process the response to ensure compatibility with HTML rendering
+      return processResponse(responseText);
+    } 
+    // For text-only prompts, use the text model
+    else {
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-pro",
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
         },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE",
-        },
-      ],
-    });
+      });
 
-    // Include the system prompt in the conversation history if provided
-    const chat = model.startChat({
-      history: systemPrompt
-        ? [
-            {
-              role: "user",
-              parts: [{ text: "Bạn là ai?" }],
-            },
-            {
-              role: "model",
-              parts: [{ text: systemPrompt }],
-            },
-          ]
-        : [],
-      generationConfig: {
-        maxOutputTokens: 8192,
-      },
-    });
+      // Combine system prompt with user prompt if available
+      const fullPrompt = systemPrompt 
+        ? `${systemPrompt}\n\n${prompt}`
+        : prompt;
 
-    // Send the user's message to the AI
-    const result = await chat.sendMessage(prompt);
-    const response = result.response;
-    const responseText = response.text();
+      // Generate content with just text
+      const result = await model.generateContent(fullPrompt);
+      const response = await result.response;
+      const responseText = response.text();
 
-    // Process the response to ensure compatibility with HTML rendering
-    // Convert any LaTeX to compatible format, etc.
-    const processedResponse = processResponse(responseText);
-
-    return processedResponse;
+      // Process the response to ensure compatibility with HTML rendering
+      return processResponse(responseText);
+    }
   } catch (error) {
     console.error("Error generating AI response:", error);
     throw new Error(

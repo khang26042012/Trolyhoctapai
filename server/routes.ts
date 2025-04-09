@@ -5,7 +5,6 @@ import multer from "multer";
 import { storage } from "./storage";
 import { insertMessageSchema, Message } from "@shared/schema";
 import { generateAIResponse } from "./ai";
-import { extractTextFromImage } from "./ocr";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create API router
@@ -33,14 +32,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save messages to storage
       const userMessage = {
-        role: "user",
+        role: "user" as const,
         content: message,
         action: action || null,
         timestamp: new Date(),
       };
       
       const assistantMessage = {
-        role: "assistant",
+        role: "assistant" as const,
         content: aiResponse,
         timestamp: new Date(),
       };
@@ -55,49 +54,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OCR endpoint for text extraction
-  apiRouter.post("/ocr/extract", async (req, res) => {
+  // Image chat endpoint - processes image directly with AI
+  apiRouter.post("/image/chat", async (req, res) => {
     try {
-      const { image } = req.body;
+      const { imageData, userText, systemPrompt, action } = req.body;
       
-      if (!image) {
-        return res.status(400).json({ error: "Image is required" });
+      if (!imageData) {
+        return res.status(400).json({ error: "Image data is required" });
       }
       
-      // Extract text from image
-      const extractedText = await extractTextFromImage(image);
-      
-      return res.status(200).json({ text: extractedText });
-    } catch (error) {
-      console.error("Error in OCR extract endpoint:", error);
-      return res.status(500).json({ error: "Failed to extract text from image" });
-    }
-  });
-
-  // OCR endpoint for processing and getting AI response
-  apiRouter.post("/ocr", async (req, res) => {
-    try {
-      const { imageData, extractedText, systemPrompt, action } = req.body;
-      
-      if (!extractedText) {
-        return res.status(400).json({ error: "Extracted text is required" });
-      }
-      
-      // Generate AI response
-      const aiResponse = await generateAIResponse(extractedText, systemPrompt);
+      // Generate AI response using the image
+      const aiResponse = await generateAIResponse(
+        userText || "Vui lòng giải bài tập trong hình ảnh này.",
+        systemPrompt,
+        imageData
+      );
       
       // Save messages to storage
       const userMessage = {
-        role: "user",
-        content: extractedText,
+        role: "user" as const,
+        content: userText || "Vui lòng giải bài tập trong hình ảnh.",
         action: action || null,
         imageData,
-        extractedText,
         timestamp: new Date(),
       };
       
       const assistantMessage = {
-        role: "assistant",
+        role: "assistant" as const,
         content: aiResponse,
         timestamp: new Date(),
       };
@@ -107,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json(savedAssistantMessage);
     } catch (error) {
-      console.error("Error in OCR endpoint:", error);
+      console.error("Error in image chat endpoint:", error);
       return res.status(500).json({ error: "Failed to process image and generate response" });
     }
   });
