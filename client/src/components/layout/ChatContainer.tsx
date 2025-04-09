@@ -88,10 +88,73 @@ function MessageBubble({ message }: { message: Message }) {
         'relative'
       );
       
+      // Biến để theo dõi trạng thái giải thích
+      let explanationPopup: HTMLDivElement | null = null;
+      
       // Add tooltip behavior
       el.addEventListener('click', async (e) => {
         e.preventDefault();
-        alert(`Thuật ngữ: ${term}\n\nĐang tải giải thích...`);
+        
+        // Xóa popup trước đó nếu có
+        if (explanationPopup) {
+          explanationPopup.remove();
+          explanationPopup = null;
+        }
+        
+        // Tạo popup giải thích
+        explanationPopup = document.createElement('div');
+        explanationPopup.className = 
+          'term-explanation-popup absolute z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 ' +
+          'rounded-lg shadow-lg p-3 max-w-sm text-sm';
+        
+        // Vị trí của popup (mặc định là bên dưới phần tử)
+        const rect = el.getBoundingClientRect();
+        explanationPopup.style.position = 'fixed';
+        explanationPopup.style.top = `${rect.bottom + window.scrollY + 8}px`;
+        explanationPopup.style.left = `${rect.left + window.scrollX}px`;
+        explanationPopup.style.maxWidth = '300px';
+        
+        // Thêm tiêu đề
+        const titleEl = document.createElement('div');
+        titleEl.className = 'font-bold text-blue-600 dark:text-blue-400 mb-2 flex justify-between items-center';
+        titleEl.innerHTML = `<span>${term}</span>`;
+        
+        // Nút đóng
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '&times;';
+        closeButton.className = 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-lg font-bold';
+        closeButton.onclick = () => {
+          if (explanationPopup) {
+            explanationPopup.remove();
+            explanationPopup = null;
+          }
+        };
+        titleEl.appendChild(closeButton);
+        
+        explanationPopup.appendChild(titleEl);
+        
+        // Thêm nội dung loading
+        const contentEl = document.createElement('div');
+        contentEl.className = 'text-gray-700 dark:text-gray-300';
+        contentEl.innerHTML = 'Đang tải giải thích...';
+        explanationPopup.appendChild(contentEl);
+        
+        // Thêm vào body
+        document.body.appendChild(explanationPopup);
+        
+        // Khiến popup đóng khi click ra ngoài
+        const handleClickOutside = (event: MouseEvent) => {
+          if (explanationPopup && !explanationPopup.contains(event.target as Node) && !el.contains(event.target as Node)) {
+            explanationPopup.remove();
+            explanationPopup = null;
+            document.removeEventListener('click', handleClickOutside);
+          }
+        };
+        
+        // Set timeout để tránh đóng ngay lập tức
+        setTimeout(() => {
+          document.addEventListener('click', handleClickOutside);
+        }, 100);
         
         try {
           const response = await fetch('/api/explain', {
@@ -103,15 +166,17 @@ function MessageBubble({ message }: { message: Message }) {
             })
           });
           
-          if (response.ok) {
+          if (response.ok && explanationPopup) {
             const data = await response.json();
-            alert(`Thuật ngữ: ${term}\n\n${data.explanation.replace(/<[^>]*>/g, '')}`);
-          } else {
-            alert(`Không thể tìm giải thích cho "${term}"`);
+            contentEl.innerHTML = data.explanation;
+          } else if (explanationPopup) {
+            contentEl.innerHTML = `Không thể tìm giải thích cho "${term}"`;
           }
         } catch (error) {
           console.error('Error fetching explanation:', error);
-          alert(`Lỗi khi tìm giải thích cho "${term}"`);
+          if (explanationPopup) {
+            contentEl.innerHTML = `Lỗi khi tìm giải thích cho "${term}"`;
+          }
         }
       });
     });

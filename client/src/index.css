@@ -99,3 +99,29 @@
   overflow-x: auto;
   max-width: 100%;
 }
+
+/* Tùy chỉnh kiểu cho popup giải thích thuật ngữ */
+.term-explanation-popup {
+  animation: fadeIn 0.2s ease-in-out;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.term-explanation-popup .prose {
+  margin: 0;
+}
+
+.term-explanation-popup p:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
