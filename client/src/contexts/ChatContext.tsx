@@ -83,12 +83,38 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
     localStorage.setItem("darkMode", state.isDarkMode.toString());
   }, [state.isDarkMode]);
-
-  // Effect to load dark mode preference from localStorage
+  
+  // Effect to save messages to localStorage whenever they change
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem("darkMode");
-    if (savedDarkMode !== null) {
-      dispatch({ type: "SET_DARK_MODE", payload: savedDarkMode === "true" });
+    // Don't save if only the initial welcome message exists
+    if (state.messages.length > 1 || (state.messages.length === 1 && state.messages[0].role !== "assistant")) {
+      localStorage.setItem("chatMessages", JSON.stringify(state.messages));
+    }
+  }, [state.messages]);
+
+  // Effect to load saved state from localStorage on initial load
+  useEffect(() => {
+    try {
+      // Load dark mode preference
+      const savedDarkMode = localStorage.getItem("darkMode");
+      if (savedDarkMode !== null) {
+        dispatch({ type: "SET_DARK_MODE", payload: savedDarkMode === "true" });
+      }
+      
+      // Load saved messages
+      const savedMessages = localStorage.getItem("chatMessages");
+      if (savedMessages) {
+        const parsedMessages = JSON.parse(savedMessages);
+        // Convert ISO date strings back to Date objects
+        const messagesWithDates = parsedMessages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        dispatch({ type: "SET_MESSAGES", payload: messagesWithDates });
+      }
+    } catch (error) {
+      console.error("Error loading saved chat state:", error);
+      // In case of error, just use the initial state
     }
   }, []);
 
@@ -168,6 +194,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const clearMessages = () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa tất cả tin nhắn?")) {
       dispatch({ type: "CLEAR_MESSAGES" });
+      // Also clear from localStorage
+      localStorage.removeItem("chatMessages");
     }
   };
 

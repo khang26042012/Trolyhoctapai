@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Message } from "@shared/schema";
 import { formatVietnamTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TermExplanationModal } from "@/components/modals/TermExplanationModal";
 
 export function ChatContainer() {
   const { state } = useChatContext();
@@ -19,8 +21,9 @@ export function ChatContainer() {
   // Process LaTeX equations when messages change
   useEffect(() => {
     // If MathJax is available, typeset the content
-    if (window.MathJax) {
-      window.MathJax.typesetPromise?.();
+    const mathJax = (window as any).MathJax;
+    if (mathJax) {
+      mathJax.typesetPromise?.();
     }
   }, [messages]);
 
@@ -58,6 +61,40 @@ export function ChatContainer() {
 
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Process term explanation elements after render
+  useEffect(() => {
+    // Skip processing for user messages
+    if (isUser || !contentRef.current) return;
+    
+    // Find all term explanation elements
+    const termElements = contentRef.current.querySelectorAll('.term-explanation');
+    
+    // Process each one
+    termElements.forEach(el => {
+      const term = el.getAttribute('data-term');
+      if (!term) return;
+      
+      // Create wrapper for the term explanation
+      const wrapper = document.createElement('span');
+      wrapper.className = 'term-wrapper';
+      
+      // Move the content to the wrapper
+      const content = el.innerHTML;
+      
+      // Render the TermExplanationModal
+      const root = createRoot(wrapper);
+      root.render(
+        <TermExplanationModal term={term}>
+          {content}
+        </TermExplanationModal>
+      );
+      
+      // Replace the original element with our wrapper
+      el.replaceWith(wrapper);
+    });
+  }, [isUser, message.content]);
 
   return (
     <div
@@ -94,8 +131,12 @@ function MessageBubble({ message }: { message: Message }) {
             </div>
           )}
           
-          {/* Use dangerouslySetInnerHTML to render HTML content (including LaTeX) */}
-          <div dangerouslySetInnerHTML={{ __html: message.content }} />
+          {/* Use dangerouslySetInnerHTML to render HTML content with ref to access for post-processing */}
+          <div 
+            ref={contentRef}
+            className="message-content" 
+            dangerouslySetInnerHTML={{ __html: message.content }} 
+          />
         </div>
         <span
           className={`text-xs text-gray-500 mt-1 ${isUser ? "mr-1" : "ml-1"}`}

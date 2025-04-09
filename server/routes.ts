@@ -54,6 +54,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ error: "Failed to generate response" });
     }
   });
+  
+  // Term explanation endpoint
+  apiRouter.post("/explain", async (req, res) => {
+    try {
+      const { term, systemPrompt } = req.body;
+      
+      if (!term) {
+        return res.status(400).json({ error: "Term is required" });
+      }
+      
+      // Generate explanation for the term
+      const explanation = await generateAIResponse(
+        `Giải thích thuật ngữ: "${term}"`, 
+        systemPrompt
+      );
+      
+      return res.status(200).json({ explanation });
+    } catch (error) {
+      console.error("Error in explain endpoint:", error);
+      return res.status(500).json({ error: "Failed to generate explanation" });
+    }
+  });
 
   // Register API routes
   app.use("/api", apiRouter);

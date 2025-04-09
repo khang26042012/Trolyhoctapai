@@ -142,11 +142,51 @@ export async function generateAIResponse(
   }
 }
 
+// List of difficult scientific/academic terms in Vietnamese that might need explanation
+const difficultTerms = [
+  // Math terms
+  { term: "hiện tượng cảm ứng từ", pattern: /\b(hiện\s*tượng\s*cảm\s*ứng\s*từ)\b/gi },
+  { term: "nguyên hàm", pattern: /\b(nguyên\s*hàm)\b/gi },
+  { term: "tích phân", pattern: /\b(tích\s*phân)\b/gi },
+  { term: "đạo hàm", pattern: /\b(đạo\s*hàm)\b/gi },
+  { term: "vi phân", pattern: /\b(vi\s*phân)\b/gi },
+  { term: "hàm số", pattern: /\b(hàm\s*số)\b/gi },
+  { term: "phương trình vi phân", pattern: /\b(phương\s*trình\s*vi\s*phân)\b/gi },
+  { term: "chuỗi số", pattern: /\b(chuỗi\s*số)\b/gi },
+  { term: "số phức", pattern: /\b(số\s*phức)\b/gi },
+  { term: "lý thuyết tập hợp", pattern: /\b(lý\s*thuyết\s*tập\s*hợp)\b/gi },
+  
+  // Physics terms
+  { term: "động lượng", pattern: /\b(động\s*lượng)\b/gi },
+  { term: "điện từ trường", pattern: /\b(điện\s*từ\s*trường)\b/gi },
+  { term: "quang học", pattern: /\b(quang\s*học)\b/gi },
+  { term: "cơ học lượng tử", pattern: /\b(cơ\s*học\s*lượng\s*tử)\b/gi },
+  { term: "thuyết tương đối", pattern: /\b(thuyết\s*tương\s*đối)\b/gi },
+  { term: "nhiệt động học", pattern: /\b(nhiệt\s*động\s*học)\b/gi },
+  { term: "điện dung", pattern: /\b(điện\s*dung)\b/gi },
+  
+  // Chemistry terms
+  { term: "phản ứng oxy hóa khử", pattern: /\b(phản\s*ứng\s*oxy\s*hóa\s*khử)\b/gi },
+  { term: "nguyên tố", pattern: /\b(nguyên\s*tố)\b/gi },
+  { term: "phân tử", pattern: /\b(phân\s*tử)\b/gi },
+  { term: "liên kết hóa học", pattern: /\b(liên\s*kết\s*hóa\s*học)\b/gi },
+  { term: "hợp chất hữu cơ", pattern: /\b(hợp\s*chất\s*hữu\s*cơ)\b/gi },
+  
+  // Biology terms
+  { term: "quang hợp", pattern: /\b(quang\s*hợp)\b/gi },
+  { term: "tế bào", pattern: /\b(tế\s*bào)\b/gi },
+  { term: "ADN", pattern: /\b(ADN|adn)\b/gi },
+  { term: "ARN", pattern: /\b(ARN|arn)\b/gi },
+  { term: "đột biến gen", pattern: /\b(đột\s*biến\s*gen)\b/gi },
+  { term: "protein", pattern: /\b(protein)\b/gi },
+];
+
 /**
  * Process the AI response to ensure it's properly formatted for display
  * - Convert line breaks to <br> tags
  * - Ensure LaTeX is properly formatted
- * - Handle any other formatting needs
+ * - Handle other formatting needs
+ * - Add term explanation functionality
  */
 function processResponse(text: string): string {
   // Basic processing
@@ -190,7 +230,16 @@ function processResponse(text: string): string {
         para.trim().startsWith("<table")) {
       return para;
     }
-    return `<p>${para.replace(/\n/g, "<br>")}</p>`;
+    let wrappedPara = `<p>${para.replace(/\n/g, "<br>")}</p>`;
+    
+    // Add explanation tooltips for difficult terms
+    difficultTerms.forEach(({ term, pattern }) => {
+      wrappedPara = wrappedPara.replace(pattern, (match) => {
+        return `<span class="term-explanation" data-term="${term}">${match}</span>`;
+      });
+    });
+    
+    return wrappedPara;
   });
 
   return paragraphs.join("\n\n");
