@@ -50,6 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "assistant" as const,
         content: aiResponse,
         timestamp: new Date(),
+        action: action || null, // Lưu lại action để hiển thị ở phía client
       };
       
       await storage.saveMessage(userMessage);

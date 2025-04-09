@@ -234,11 +234,25 @@ function MessageBubble({ message }: { message: Message }) {
             dangerouslySetInnerHTML={{ __html: message.content }} 
           />
         </div>
-        <span
-          className={`text-xs text-gray-500 mt-1 ${isUser ? "mr-1" : "ml-1"}`}
-        >
-          {formatVietnamTime(message.timestamp)}
-        </span>
+        <div className={`flex text-xs mt-1 ${isUser ? "justify-end" : "justify-start"}`}>
+          <span className={`text-gray-500 ${isUser ? "mr-1" : "ml-1"}`}>
+            {formatVietnamTime(message.timestamp)}
+          </span>
+          
+          {/* Hiển thị nhãn chế độ nếu là tin nhắn AI và có action */}
+          {!isUser && message.action && (
+            <span className={`ml-3 px-1.5 py-0.5 rounded text-xs font-medium ${
+              message.action === "complete" 
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
+                : message.action === "concise"
+                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+            }`}>
+              {message.action === "complete" ? "Giải đầy đủ" : 
+               message.action === "concise" ? "Giải rút gọn" : "Gợi ý"}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
