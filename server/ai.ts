@@ -162,11 +162,32 @@ function processResponse(text: string): string {
     .replace(/\b(sin|cos|tan|log|ln)\b/g, "\\($1\\)")
     .replace(/\b(π|theta|alpha|beta|gamma|delta)\b/g, "\\($1\\)");
 
+  // Process list markers before splitting paragraphs
+  // Find paragraphs that look like lists (consecutive lines starting with * or -)
+  const listPattern = /^(?:\s*[\*\-]\s+.+\n?)+$/gm;
+  processed = processed.replace(listPattern, (listBlock) => {
+    // Convert each list item to HTML
+    const htmlList = listBlock
+      .split('\n')
+      .filter(line => /^\s*[\*\-]\s+.+/.test(line)) // Keep only valid list items
+      .map(line => {
+        const content = line.replace(/^\s*[\*\-]\s+/, '');
+        return `<li>${content}</li>`;
+      })
+      .join('');
+    
+    return `<ul>${htmlList}</ul>`;
+  });
+
   // Convert line breaks to <br> tags and wrap paragraphs with <p> tags
-  // This is a simplified approach, a more robust HTML parser would be better
+  // But don't wrap HTML elements that should be at block level
   const paragraphs = processed.split("\n\n").map(para => {
-    if (para.trim().startsWith("<")) {
-      // Assume it's already HTML, don't wrap in <p>
+    // Skip wrapping for HTML block elements
+    if (para.trim().startsWith("<ul") || 
+        para.trim().startsWith("<ol") ||
+        para.trim().startsWith("<div") ||
+        para.trim().startsWith("<h") ||
+        para.trim().startsWith("<table")) {
       return para;
     }
     return `<p>${para.replace(/\n/g, "<br>")}</p>`;
