@@ -259,13 +259,32 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         // Format câu hỏi
         let formattedQuestion = q.question;
         
+        // Tạo tiêu đề có các chữ cái A, B, C, D nếu là câu hỏi trắc nghiệm
+        let questionTitle = "";
+        if (isMultipleChoice) {
+          // Tìm các lựa chọn A, B, C, D
+          const optionMatches = q.question.match(/([A-D]\.|\([A-D]\)|[A-D]\))/g);
+          if (optionMatches && optionMatches.length > 0) {
+            // Lấy các chữ cái A, B, C, D từ các phần so khớp
+            const optionLetters = optionMatches.map(match => match.match(/[A-D]/)[0]);
+            // Tạo chuỗi chữ cái (VD: "A B C D")
+            questionTitle = optionLetters.join(' ');
+          } else {
+            questionTitle = "A B C D"; // Mặc định nếu không tìm thấy
+          }
+        } else {
+          // Nếu không phải trắc nghiệm thì lấy tiêu đề từ nội dung câu hỏi
+          questionTitle = q.question.replace(/<[^>]*>/g, '').substring(0, 100) + 
+                         (q.question.replace(/<[^>]*>/g, '').length > 100 ? '...' : '');
+        }
+        
         practiceContent += `
           <div class="practice-question mb-4">
             <div class="font-medium practice-question-title">
-              Câu ${index + 1}: ${isMultipleChoice ? "Chọn" : q.question.replace(/<[^>]*>/g, '').substring(0, 100) + (q.question.replace(/<[^>]*>/g, '').length > 100 ? '...' : '')}
+              Câu ${index + 1}: ${isMultipleChoice ? questionTitle : questionTitle}
             </div>
             <div class="practice-question-content my-2">
-              ${isMultipleChoice ? formattedQuestion : q.question}
+              ${q.question}
             </div>
             <div class="practice-answer" data-practice-id="${index}">
               <button class="text-blue-600 dark:text-blue-400 text-sm font-medium cursor-pointer practice-toggle" 
