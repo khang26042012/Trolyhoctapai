@@ -8,6 +8,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
 
 interface ImagePreviewModalProps {
@@ -15,7 +16,7 @@ interface ImagePreviewModalProps {
   onClose: () => void;
   imageUrl: string;
   isProcessing: boolean;
-  extractedText: string;
+  extractedText?: string;
   onSendImage: () => void;
 }
 
@@ -24,14 +25,19 @@ export function ImagePreviewModal({
   onClose,
   imageUrl,
   isProcessing,
-  extractedText,
   onSendImage,
 }: ImagePreviewModalProps) {
+  // Local state for user-entered text about the image
+  const [userText, setUserText] = useState("");
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Xác nhận hình ảnh</DialogTitle>
+          <DialogDescription>
+            Hãy nhập câu hỏi hoặc yêu cầu về bài tập trong hình ảnh này.
+          </DialogDescription>
           <DialogClose asChild>
             <Button
               variant="ghost"
@@ -53,17 +59,14 @@ export function ImagePreviewModal({
           )}
           <div className="w-full space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isProcessing ? "Đang trích xuất văn bản..." : "Nội dung trích xuất:"}
+              Câu hỏi của bạn:
             </p>
-            <div className={`w-full p-3 bg-gray-100 dark:bg-gray-700 rounded-lg max-h-40 overflow-y-auto ${extractedText ? "border border-green-500" : ""}`}>
-              {isProcessing ? (
-                <div className="flex justify-center items-center py-2">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                </div>
-              ) : (
-                <p className="text-gray-800 dark:text-gray-200">{extractedText || "Không thể trích xuất văn bản. Vui lòng thử lại với ảnh rõ hơn."}</p>
-              )}
-            </div>
+            <Textarea
+              placeholder="Vui lòng giải bài tập trong hình ảnh này..."
+              className="w-full p-3 bg-gray-100 dark:bg-gray-700 rounded-lg min-h-20"
+              value={userText}
+              onChange={(e) => setUserText(e.target.value)}
+            />
           </div>
           <div className="flex space-x-3 w-full">
             <Button
@@ -75,8 +78,12 @@ export function ImagePreviewModal({
             </Button>
             <Button
               className="flex-1"
-              onClick={onSendImage}
-              disabled={isProcessing || !extractedText}
+              onClick={() => {
+                // Update parent component state with user text
+                window.localStorage.setItem('userImageText', userText);
+                onSendImage();
+              }}
+              disabled={isProcessing}
             >
               Gửi
             </Button>

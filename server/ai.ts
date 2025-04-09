@@ -26,10 +26,10 @@ export async function generateAIResponse(
   try {
     const genAI = getGeminiClient();
     
-    // For image-based prompts, use the gemini-pro-vision model directly
+    // For image-based prompts, use the multimodal model
     if (imageData) {
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-pro-vision",
+        model: "gemini-pro-vision", // Using vision model for images
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 8192,
@@ -61,7 +61,7 @@ export async function generateAIResponse(
     // For text-only prompts, use the text model
     else {
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-pro",
+        model: "gemini-pro", // Using standard text model
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 8192,

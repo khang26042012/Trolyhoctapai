@@ -10,7 +10,6 @@ export const messages = pgTable("messages", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   action: text("action"), // 'complete', 'concise', 'hint', or null
   imageData: text("image_data"), // base64 encoded image data
-  extractedText: text("extracted_text"), // text extracted from image
 });
 
 // Define the insert schema for messages
@@ -27,7 +26,6 @@ export const messageSchema = z.object({
   timestamp: z.date().optional(),
   action: z.enum(["complete", "concise", "hint"]).optional().nullable(),
   imageData: z.string().optional().nullable(),
-  extractedText: z.string().optional().nullable(),
 });
 
 // Define the type for inserting a message

@@ -128,14 +128,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Function to send an image to be processed by OCR
-  const sendImage = async (imageData: string, extractedText: string) => {
+  // Function to send an image to be analyzed by the AI
+  const sendImage = async (imageData: string, userQuestion: string) => {
     const userMessage: Message = {
       role: "user",
-      content: extractedText,
+      content: userQuestion,
       timestamp: new Date(),
       imageData,
-      extractedText,
       action: state.selectedAction,
     };
 
@@ -145,9 +144,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       const systemPrompt = generateSystemPrompt(state.selectedAction);
       
-      const response = await apiRequest<Message>("POST", "/api/ocr", {
+      const response = await apiRequest<Message>("POST", "/api/chat", {
+        message: userQuestion,
         imageData,
-        extractedText,
         systemPrompt,
         action: state.selectedAction,
       });
