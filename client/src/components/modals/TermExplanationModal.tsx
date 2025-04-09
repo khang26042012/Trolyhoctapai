@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useChatContext } from "@/contexts/ChatContext";
-import { generateSystemPrompt } from "@/lib/utils";
 import { apiRequest } from "@/lib/utils";
 
 interface TermExplanationModalProps {
@@ -23,7 +21,6 @@ export function TermExplanationModal({ term, children }: TermExplanationModalPro
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const { state } = useChatContext();
 
   const fetchExplanation = async () => {
     if (explanation) return; // Don't fetch again if already have explanation

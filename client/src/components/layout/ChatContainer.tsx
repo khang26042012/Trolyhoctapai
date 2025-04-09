@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Message } from "@shared/schema";
 import { formatVietnamTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TermExplanationModal } from "@/components/modals/TermExplanationModal";
 
 export function ChatContainer() {
   const { state } = useChatContext();
@@ -63,7 +61,8 @@ function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // Process term explanation elements after render
+  // Hỗ trợ hiển thị giải thích từ vựng mà không cần dùng TermExplanationModal
+  // Đơn giản hóa bằng cách thêm tooltip thay vì modal
   useEffect(() => {
     // Skip processing for user messages
     if (isUser || !contentRef.current) return;
@@ -76,23 +75,45 @@ function MessageBubble({ message }: { message: Message }) {
       const term = el.getAttribute('data-term');
       if (!term) return;
       
-      // Create wrapper for the term explanation
-      const wrapper = document.createElement('span');
-      wrapper.className = 'term-wrapper';
-      
-      // Move the content to the wrapper
-      const content = el.innerHTML;
-      
-      // Render the TermExplanationModal
-      const root = createRoot(wrapper);
-      root.render(
-        <TermExplanationModal term={term}>
-          {content}
-        </TermExplanationModal>
+      // Add styling and tooltip functionality directly 
+      el.classList.add(
+        'cursor-help',
+        'border-b',
+        'border-dotted',
+        'border-blue-500', 
+        'text-blue-600', 
+        'dark:text-blue-400', 
+        'hover:text-blue-800', 
+        'dark:hover:text-blue-300',
+        'relative'
       );
       
-      // Replace the original element with our wrapper
-      el.replaceWith(wrapper);
+      // Add tooltip behavior
+      el.addEventListener('click', async (e) => {
+        e.preventDefault();
+        alert(`Thuật ngữ: ${term}\n\nĐang tải giải thích...`);
+        
+        try {
+          const response = await fetch('/api/explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              term,
+              systemPrompt: "Giải thích ngắn gọn thuật ngữ này (dưới 100 từ)"
+            })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            alert(`Thuật ngữ: ${term}\n\n${data.explanation.replace(/<[^>]*>/g, '')}`);
+          } else {
+            alert(`Không thể tìm giải thích cho "${term}"`);
+          }
+        } catch (error) {
+          console.error('Error fetching explanation:', error);
+          alert(`Lỗi khi tìm giải thích cho "${term}"`);
+        }
+      });
     });
   }, [isUser, message.content]);
 
