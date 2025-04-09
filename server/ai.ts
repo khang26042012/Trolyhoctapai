@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 // Initialize the Google Generative AI client
 const getGeminiClient = () => {
@@ -8,6 +8,7 @@ const getGeminiClient = () => {
     throw new Error("GEMINI_API_KEY environment variable is not set");
   }
   
+  // Create a new instance with API key
   return new GoogleGenerativeAI(apiKey);
 };
 
@@ -26,14 +27,32 @@ export async function generateAIResponse(
   try {
     const genAI = getGeminiClient();
     
-    // For image-based prompts, use the multimodal model
+    // For image-based prompts, use the multimodal model (1.5 pro)
     if (imageData) {
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-pro-vision", // Using vision model for images
+        model: "gemini-1.5-pro", // Using newer model for multimodal content
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 8192,
         },
+        safetySettings: [
+          {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+        ],
       });
 
       // Create image part from the base64 data
@@ -50,10 +69,18 @@ export async function generateAIResponse(
         ? `${systemPrompt}\n\n${prompt || "Vui lòng giải bài tập trong hình ảnh này."}`
         : (prompt || "Vui lòng giải bài tập trong hình ảnh này.");
 
+      // Create a chat session
+      const chat = model.startChat({
+        history: [],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+        },
+      });
+
       // Generate content with text and image
-      const result = await model.generateContent([promptText, imagePart]);
-      const response = await result.response;
-      const responseText = response.text();
+      const result = await chat.sendMessage([promptText, imagePart]);
+      const responseText = result.response.text();
       
       // Process the response to ensure compatibility with HTML rendering
       return processResponse(responseText);
@@ -61,11 +88,29 @@ export async function generateAIResponse(
     // For text-only prompts, use the text model
     else {
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-pro", // Using standard text model
+        model: "gemini-1.5-pro", // Using newer model for better results
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 8192,
         },
+        safetySettings: [
+          {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+        ],
       });
 
       // Combine system prompt with user prompt if available
@@ -73,10 +118,18 @@ export async function generateAIResponse(
         ? `${systemPrompt}\n\n${prompt}`
         : prompt;
 
+      // Create a chat session
+      const chat = model.startChat({
+        history: [],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+        },
+      });
+
       // Generate content with just text
-      const result = await model.generateContent(fullPrompt);
-      const response = await result.response;
-      const responseText = response.text();
+      const result = await chat.sendMessage(fullPrompt);
+      const responseText = result.response.text();
 
       // Process the response to ensure compatibility with HTML rendering
       return processResponse(responseText);
